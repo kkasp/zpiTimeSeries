@@ -1,4 +1,4 @@
-package com.zpi.charts;
+package com.zpi.timeseries.charts;
 
 import java.util.ArrayList;
 
@@ -17,7 +17,7 @@ public class BarChartValues {
 		
 		
 		this.name = name;
-		if(values.size() == labels.size()){	// obciêcie czêœci list jeœli nie s¹ równe.
+		if(values.size() == labels.size()){	// obciï¿½cie czï¿½ci list jeï¿½li nie sï¿½ rï¿½wne.
 			
 			this.values = values;
 			this.labels = labels;

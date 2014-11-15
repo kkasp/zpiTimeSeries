@@ -1,4 +1,4 @@
-package com.zpi.charts;
+package com.zpi.timeseries.charts;
 
 import java.awt.geom.Point2D;
 import java.util.ArrayList;

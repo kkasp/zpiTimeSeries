@@ -1,4 +1,4 @@
-package com.zpi.charts;
+package com.zpi.timeseries.charts;
 
 import java.awt.Color;
 import java.util.ArrayList;
@@ -78,7 +78,7 @@ public class BarChart {
 	}
 	
 	
-	/* Budowa zwyk³ego wykresu: */
+	/* Budowa zwykï¿½ego wykresu: */
 	public void createBarChart(){
 		
 		DefaultCategoryDataset dataset = createDataset();
