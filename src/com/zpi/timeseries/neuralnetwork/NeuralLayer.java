@@ -1,6 +1,5 @@
 package com.zpi.timeseries.neuralnetwork;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class NeuralLayer

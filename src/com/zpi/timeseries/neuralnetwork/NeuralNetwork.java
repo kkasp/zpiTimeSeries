@@ -3,14 +3,23 @@ package com.zpi.timeseries.neuralnetwork;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.zpi.timeseries.neuralnetwork.learning.AutonomicLearner;
+import com.zpi.timeseries.neuralnetwork.transferprocessors.TransferProcessor;
+
 public class NeuralNetwork
 {
 	private NeuralLayer[] layers;
 	private TransferProcessor processor;
+	private AutonomicLearner autonomicLearner;
 	
 	public NeuralNetwork(int[] neuronCounts, TransferProcessor processor)
 	{
-		this.processor = processor;
+		this(neuronCounts, processor, null);
+	}
+	
+	public NeuralNetwork(int[] neuronCounts, TransferProcessor processor,
+			AutonomicLearner autonomicLearner)
+	{
 		layers = new NeuralLayer[neuronCounts.length];
 		
 		for(int i = 0; i < neuronCounts.length; i++)
@@ -30,20 +39,10 @@ public class NeuralNetwork
 			if(i > 0)
 				connectLayers(layers[i - 1], layers[i]);
 		}
-	}
-	
-	public double getWeight(int layerIndex, int neuronIndex, int inputIndex)
-	{
-		NeuralLayer layer = layers[layerIndex];
-		Neuron neuron = layer.getNeurons().get(neuronIndex);
-		return neuron.getInputs().get(inputIndex).getWeight();
-	}
-	
-	public void setWeight(int layerIndex, int neuronIndex, int inputIndex, double weight)
-	{
-		NeuralLayer layer = layers[layerIndex];
-		Neuron neuron = layer.getNeurons().get(neuronIndex);
-		neuron.getInputs().get(inputIndex).setWeight(weight);
+		
+		// Ustawienie procesora
+		this.setProcessor(processor);
+		this.setAutonomicLearner(autonomicLearner);
 	}
 	
 	public double[] processInput(double[] input)
@@ -55,7 +54,8 @@ public class NeuralNetwork
 		// Ustawianie wejść
 		for(int i = 0; i < input.length; i++)
 		{
-			layers[0].getNeurons().get(i).getInputs().get(0).setInputValue(input[i]);
+			layers[0].getNeurons().get(i).getInputs().get(0)
+					.setInputValue(input[i]);
 		}
 		
 		// Processing
@@ -68,7 +68,7 @@ public class NeuralNetwork
 		}
 		
 		// Tworzenie wektora wyjściowego
-		List<Neuron> outputNeurons = layers[layers.length-1].getNeurons();
+		List<Neuron> outputNeurons = layers[layers.length - 1].getNeurons();
 		double[] output = new double[outputNeurons.size()];
 		
 		for(int i = 0; i < outputNeurons.size(); i++)
@@ -89,6 +89,55 @@ public class NeuralNetwork
 			{
 				neuron.getInputs().get(i)
 						.setSource(previous.getNeurons().get(i));
+			}
+		}
+	}
+	
+	public double getWeight(int layerIndex, int neuronIndex, int inputIndex)
+	{
+		NeuralLayer layer = layers[layerIndex];
+		Neuron neuron = layer.getNeurons().get(neuronIndex);
+		return neuron.getInputs().get(inputIndex).getWeight();
+	}
+	
+	public void setWeight(int layerIndex, int neuronIndex, int inputIndex,
+			double weight)
+	{
+		NeuralLayer layer = layers[layerIndex];
+		Neuron neuron = layer.getNeurons().get(neuronIndex);
+		neuron.getInputs().get(inputIndex).setWeight(weight);
+	}
+	
+	public TransferProcessor getProcessor()
+	{
+		return processor;
+	}
+	
+	public void setProcessor(TransferProcessor processor)
+	{
+		this.processor = processor;
+		for(NeuralLayer layer : layers)
+		{
+			for(Neuron neuron : layer.getNeurons())
+			{
+				neuron.setProcessor(processor);
+			}
+		}
+	}
+	
+	public AutonomicLearner getAutonomicLearner()
+	{
+		return autonomicLearner;
+	}
+	
+	public void setAutonomicLearner(AutonomicLearner autonomicLearner)
+	{
+		this.autonomicLearner = autonomicLearner;
+		for(NeuralLayer layer : layers)
+		{
+			for(Neuron neuron : layer.getNeurons())
+			{
+				neuron.setAutononicLearner(autonomicLearner);
 			}
 		}
 	}

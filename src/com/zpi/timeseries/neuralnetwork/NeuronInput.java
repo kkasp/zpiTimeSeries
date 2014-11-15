@@ -1,5 +1,7 @@
 package com.zpi.timeseries.neuralnetwork;
 
+import java.util.Random;
+
 public class NeuronInput
 {
 	private double weight;
@@ -9,7 +11,7 @@ public class NeuronInput
 	public NeuronInput()
 	{
 		inputValue = 0.0;
-		weight = 1.0;
+		weight = new Random().nextDouble() * .2;  // W ten sposób mamy liczbę z zakresu 0-0.2
 		source = null;
 	}
 	
@@ -28,7 +30,7 @@ public class NeuronInput
 		inputValue = value;
 	}
 	
-	double getValue()
+	public double getValue()
 	{
 		if(source != null)
 			return source.getValue();
@@ -36,7 +38,7 @@ public class NeuronInput
 			return inputValue;
 	}
 
-	Neuron getSource()
+	public Neuron getSource()
 	{
 		return source;
 	}
