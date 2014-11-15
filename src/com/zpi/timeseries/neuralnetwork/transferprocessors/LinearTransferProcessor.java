@@ -1,4 +1,4 @@
-package com.zpi.timeseries.neuralnetwork;
+package com.zpi.timeseries.neuralnetwork.transferprocessors;
 
 public class LinearTransferProcessor implements TransferProcessor
 {

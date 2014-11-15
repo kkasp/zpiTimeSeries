@@ -1,6 +1,5 @@
-package com.zpi.timeseries.neuralnetwork;
+package com.zpi.timeseries.neuralnetwork.transferprocessors;
 
-import java.util.concurrent.Callable;
 
 public interface TransferProcessor
 {
