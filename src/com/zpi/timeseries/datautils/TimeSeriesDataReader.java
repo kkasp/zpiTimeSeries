@@ -1,4 +1,4 @@
-package com.company;
+package com.zpi.timeseries.datautils;
 
 import com.opencsv.CSVReader;
 import org.w3c.dom.Document;

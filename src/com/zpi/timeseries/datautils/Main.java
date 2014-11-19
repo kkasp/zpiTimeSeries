@@ -1,4 +1,4 @@
-package com.company;
+package com.zpi.timeseries.datautils;
 
 import java.util.GregorianCalendar;
 

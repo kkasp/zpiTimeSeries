@@ -1,3 +1,5 @@
+package com.zpi.timeseries.corellation;
+
 import java.util.*;
 
 // RӯNE SPOSOBY LICZENIA KRELACJI:

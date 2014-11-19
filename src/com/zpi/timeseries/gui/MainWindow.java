@@ -20,20 +20,32 @@ public class MainWindow implements ActionListener {
 	
 	private Frame mainFrame;
 
+	//sciezka do pliku zapisu/odczytu danych
 	TextField filePath;
+	
+	//Czy wyswietlac barchart? jesli nie to XYChart 
 	boolean barChart = true;
+	
+	//Tydzien, miesiac, czy zakres?
 	TimeRangeOption timeRangeOption = TimeRangeOption.Week;
+	
+	//Z tego mozemu brac tydzien, miesiac lub zakres
+	//Przy 2 pierwszych opcjach druga data jest nieaktywna
+	//Zakres daty od
 	DateTextField dateFrom;
+	//Zakres daty do
 	DateTextField dateTo;
 	
+	//Zakres drugiego wykresu do korelacji
+	//Dzialanie jak wyzej
+	//Zakres daty od (do korelacji)
+	DateTextField dateFromCorrelation;
+	//Zakres daty do (do korelacji)
+	DateTextField dateToCorrelation;
 	
-	public MainWindow() {
-		prepareGUI();
-	}
-
 	public static void main(String[] args) {
-		MainWindow awtLayoutDemo = new MainWindow();
-		//awtLayoutDemo.showBorderLayoutDemo();
+		MainWindow window = new MainWindow();
+		window.prepareGUI();
 	}
 
 	private void prepareGUI() {
@@ -87,15 +99,17 @@ public class MainWindow implements ActionListener {
 				Checkbox barChartOption = new Checkbox(MainMenuCommands.barChartOptionTxt, chartChoice, true);
 				barChartOption.addItemListener(new ItemListener() {
 					public void itemStateChanged(ItemEvent arg0) {
-						barChart = true;	
+						barChart = true;
+						System.out.println("Bar");
 					}
 				});
 				chartChoicePanel.add(barChartOption);
 				
 				Checkbox xyChartOption = new Checkbox(MainMenuCommands.XYChartOptionTxt, chartChoice, false);
-				barChartOption.addItemListener(new ItemListener() {
+				xyChartOption.addItemListener(new ItemListener() {
 					public void itemStateChanged(ItemEvent arg0) {
-						barChart = false;	
+						barChart = false;
+						System.out.println("XY");
 					}
 				});
 				chartChoicePanel.add(xyChartOption);
@@ -114,22 +128,31 @@ public class MainWindow implements ActionListener {
 				weekRangeOption.addItemListener(new ItemListener() {
 					public void itemStateChanged(ItemEvent arg0) {
 						timeRangeOption = TimeRangeOption.Week;	
+						dateTo.setEnabled(false);
+						dateToCorrelation.setEnabled(false);
+						System.out.println("Week");
 					}
 				});
 				rangeChoicePanel.add(weekRangeOption);
 				
 				Checkbox monthRangeOption = new Checkbox(MainMenuCommands.monthOptionTxt, chartChoice, false);
-				weekRangeOption.addItemListener(new ItemListener() {
+				monthRangeOption.addItemListener(new ItemListener() {
 					public void itemStateChanged(ItemEvent arg0) {
-						timeRangeOption = TimeRangeOption.Month;		
+						timeRangeOption = TimeRangeOption.Month;
+						dateTo.setEnabled(false);
+						dateToCorrelation.setEnabled(false);
+						System.out.println("Month");
 					}
 				});
 				rangeChoicePanel.add(monthRangeOption);
 				
 				Checkbox customRangeOption = new Checkbox(MainMenuCommands.rangeOptionTxt, chartChoice, false);
-				weekRangeOption.addItemListener(new ItemListener() {
+				customRangeOption.addItemListener(new ItemListener() {
 					public void itemStateChanged(ItemEvent arg0) {
-						timeRangeOption = TimeRangeOption.Custom;		
+						timeRangeOption = TimeRangeOption.Custom;	
+						dateTo.setEnabled(true);
+						dateToCorrelation.setEnabled(true);
+						System.out.println("Custom");
 					}
 				});
 				rangeChoicePanel.add(customRangeOption);
@@ -160,11 +183,21 @@ public class MainWindow implements ActionListener {
 					Corelation();
 				}
 			});
+			
 			panel.add(corelationRandomButton);
+			
+			Panel dateChoicePanel = new Panel();
+			dateChoicePanel.setLayout(new GridLayout(2,0));
+			
+			dateFromCorrelation = new DateTextField();
+			dateToCorrelation = new DateTextField();
+			dateChoicePanel.add(dateFromCorrelation);
+			dateChoicePanel.add(dateToCorrelation);
+			panel.add(dateChoicePanel);
 			
 			mainFrame.add(panel);
 		}
-
+	
 	}
 	
 	public void GenerateRandom()
