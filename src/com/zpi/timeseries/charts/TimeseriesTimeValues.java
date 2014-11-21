@@ -1,26 +1,29 @@
 package com.zpi.charts;
 
-import java.awt.geom.Point2D;
 import java.util.ArrayList;
 
-public class XYChartValues {
-	
-	String name;
-	ArrayList<Point2D> values;
-	int size;
+import org.jfree.data.time.Day;
+
+public class TimeseriesTimeValues {
+	private ArrayList<Day> xValues;
+	private ArrayList<Double> yValues;
+	private String name;
+	private int size;
+	private Day startPoint;
 	
 	/*****************************************************************************************/
 	/* 									KONSTRUKTORY 										 */
 	/*****************************************************************************************/
 	
-	public XYChartValues(String name, ArrayList<Point2D> values){
+	public TimeseriesTimeValues(String name, ArrayList<Day> xValues, ArrayList<Double> yValues){
 		
 		
 		this.name = name;
-		this.values = values;
+		this.xValues = xValues;
+		this.yValues = yValues;
 		//----------
 		
-		size = values.size();
+		size = xValues.size();
 	}
 	
 	/*****************************************************************************************/
@@ -33,8 +36,13 @@ public class XYChartValues {
 		this.name = name;
 	}
 	
-	public void setValues(ArrayList<Point2D> val){
-		this.values = val;
+	public void setValues(ArrayList<Day> xVal, ArrayList<Double> yVal){
+		this.xValues = xVal;
+		this.yValues = yVal;
+	}
+	
+	public void setStartPoint(Day startPoint){
+		this.startPoint = startPoint;
 	}
 	
 	/* GETTERY */
@@ -43,11 +51,19 @@ public class XYChartValues {
 		return this.name;
 	}
 	
-	public ArrayList<Point2D> getValues(){
-		return this.values;
+	public ArrayList<Day> getXValues(){
+		return this.xValues;
+	}
+	
+	public ArrayList<Double> getYValues(){
+		return this.yValues;
 	}
 	
 	public int getSize(){
 		return this.size;
+	}
+
+	public Day getStartPoint(){
+		return this.startPoint;
 	}
 }

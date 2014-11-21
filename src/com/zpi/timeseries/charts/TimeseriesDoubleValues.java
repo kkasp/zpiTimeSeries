@@ -2,40 +2,26 @@ package com.zpi.charts;
 
 import java.util.ArrayList;
 
-public class BarChartValues {
+public class TimeseriesDoubleValues {
 	
-	String name;
-	ArrayList<String> labels;
-	ArrayList<Double> values;
-	int size;
+	private ArrayList<Double> values;
+	private String name;
+	private int size;
+	private int startPoint;
 	
 	/*****************************************************************************************/
 	/* 									KONSTRUKTORY 										 */
 	/*****************************************************************************************/
 	
-	public BarChartValues(String name, ArrayList<String> labels, ArrayList<Double> values){
+	public TimeseriesDoubleValues(String name, ArrayList<Double> values, int startPoint){
 		
 		
 		this.name = name;
-		if(values.size() == labels.size()){	// obciêcie czêœci list jeœli nie s¹ równe.
-			
-			this.values = values;
-			this.labels = labels;
-			
-		} else{
-			if(values.size() < labels.size()){
-				
-				this.values = values;
-				this.labels = (ArrayList<String>) labels.subList(0, values.size());
-				
-			} else{
-				this.values = (ArrayList<Double>) values.subList(0, labels.size());
-				this.labels = labels;
-			}
-		}
+		this.values = values;
 		//----------
 		
 		size = values.size();
+		this.startPoint = startPoint;
 	}
 	
 	/*****************************************************************************************/
@@ -48,12 +34,12 @@ public class BarChartValues {
 		this.name = name;
 	}
 	
-	public void setLabels(ArrayList<String> labels){
-		this.labels = labels;
+	public void setValues(ArrayList<Double> val){
+		this.values = val;
 	}
 	
-	public void setValues(ArrayList<Double> values){
-		this.values = values;
+	public void setStartPoint(int startPoint){
+		this.startPoint = startPoint;
 	}
 	
 	/* GETTERY */
@@ -66,11 +52,11 @@ public class BarChartValues {
 		return this.values;
 	}
 	
-	public ArrayList<String> getLabels(){
-		return this.labels;
-	}
-	
 	public int getSize(){
 		return this.size;
+	}
+
+	public int getStartPoint(){
+		return this.startPoint;
 	}
 }

@@ -1,12 +1,19 @@
-package com.zpi.timeseries.charts;
+package com.zpi.charts;
 
 import java.awt.Color;
+import java.awt.Dimension;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Random;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartFrame;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.labels.ItemLabelPosition;
+import org.jfree.chart.labels.StandardCategoryItemLabelGenerator;
+import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.renderer.category.BarRenderer;
 import org.jfree.data.category.DefaultCategoryDataset;
 
 public class BarChart {
@@ -35,7 +42,7 @@ public class BarChart {
 		this.yLabel = "Y";
 		values = new ArrayList<BarChartValues>();
 		height = 1000;
-		width= 700;
+		width= 1000;
 		
 		plotColor = Color.gray;
 		backgroundColor = Color.white;
@@ -78,7 +85,7 @@ public class BarChart {
 	}
 	
 	
-	/* Budowa zwykï¿½ego wykresu: */
+	/* Budowa zwyk³ego wykresu: */
 	public void createBarChart(){
 		
 		DefaultCategoryDataset dataset = createDataset();
@@ -87,9 +94,20 @@ public class BarChart {
 		
 		// stworzenie wykresu z danych:
 		chart = ChartFactory.createBarChart( this.chartTitle, this.xLabel, this.yLabel, dataset, orientation, true, true, false );
+		chart.setBorderPaint(backgroundColor);
+		
+		
+		// wyœwietlanie wartoœci na s³upkach:
+		CategoryPlot p = chart.getCategoryPlot();
+		BarRenderer renderer = (BarRenderer)p.getRenderer();
+		DecimalFormat decimalFormat = new DecimalFormat(".#");
+		renderer.setItemLabelGenerator(new StandardCategoryItemLabelGenerator("{2}",decimalFormat));
+		renderer.setBasePositiveItemLabelPosition(new ItemLabelPosition());
+		renderer.setItemLabelsVisible(true);
 		
 		ChartFrame chartFrame =new ChartFrame(this.chartTitle, chart);
 		chartFrame.setVisible(true);
+		//chartFrame.setPreferredSize(new Dimension(this.width, this.height));
 		chartFrame.setSize(this.width, this.height);
 		
 	}
@@ -101,6 +119,16 @@ public class BarChart {
 		JFreeChart chart;
 		
 		chart = ChartFactory.createBarChart3D( this.chartTitle, this.xLabel, this.yLabel, dataset, orientation, true, true, false );
+		chart.setBorderPaint(backgroundColor);
+		
+		
+		// wyœwietlanie wartoœci na s³upkach:
+		CategoryPlot p = chart.getCategoryPlot();
+		BarRenderer renderer = (BarRenderer)p.getRenderer();
+		DecimalFormat decimalFormat = new DecimalFormat(".#");
+		renderer.setItemLabelGenerator(new StandardCategoryItemLabelGenerator("{2}",decimalFormat));
+		renderer.setBasePositiveItemLabelPosition(new ItemLabelPosition());
+		renderer.setItemLabelsVisible(true);
 		
 		ChartFrame chartFrame =new ChartFrame(this.chartTitle, chart);
 		chartFrame.setVisible(true);
@@ -198,34 +226,29 @@ public class BarChart {
 		
 		BarChart chart;
 		ArrayList<Double> values = new ArrayList<Double>();
+		ArrayList<Double> values2 = new ArrayList<Double>();
 		ArrayList<String> labels = new ArrayList<String>();
 		String name1 = "nazwa1";
 		String name2 = "nazwa2";
 		
-		// Stworzenie danych testowych
-		// wykres 1:
-		values.add(12.5);
-		values.add(3.35);
-		values.add(7.0);
 		
-		labels.add("1014-11-04");
-		labels.add("2014-11-05");
-		labels.add("2014-11-06");
-		
+		for(Integer i=1; i< 20; i++){
+			Random rand = new Random();
+			
+			labels.add(i.toString());
+			
+			values.add(rand.nextDouble()*200);
+			values2.add(rand.nextDouble() * 150);
+		}
 		
 		// stworzenie wykresu:
-		chart = new BarChart("Wykres 1", new BarChartValues(name1, values, labels));
+		chart = new BarChart("Wykres 1", new BarChartValues(name1, labels, values));
 		chart.createBarChart();
 		chart.create3DBarChart();
 		
 		
-		values = new ArrayList<Double>();
-		values.add(1.0);
-		values.add(5.25);
-		values.add(10.11);
-		
 		// wykres 2:
-		chart.addValues(new BarChartValues(name2, values, labels));
+		chart.addValues(new BarChartValues(name2, labels, values2));
 		chart.createBarChart();
 		chart.create3DBarChart();
 		
