@@ -11,7 +11,7 @@ public class Main {
         generator.generateCSVData();
         generator.generateXMLData();
         TimeSeriesDataReader reader = new TimeSeriesDataReader();
-        for(TimeSeriesEntry entry : reader.readXMLData("/home/kamil/Studia/timeSeriesTestData.xml")) {
+        for(TimeSeriesEntry entry : reader.readXMLData("/timeSeriesTestData.xml")) {
             System.out.println(entry.getDoubleBinaryAmount().toString());
         }
 

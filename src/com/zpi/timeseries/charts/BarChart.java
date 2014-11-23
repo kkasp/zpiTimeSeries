@@ -1,4 +1,4 @@
-package com.zpi.charts;
+package com.zpi.timeseries.charts;
 
 import java.awt.Color;
 import java.awt.Dimension;

@@ -82,7 +82,7 @@ public class TimeSeriesDataGenerator {
             Transformer transformer = transformerFactory.newTransformer();
 
             DOMSource source = new DOMSource(doc);
-            StreamResult result = new StreamResult(new File("/home/kamil/Studia/timeSeriesTestData.xml"));
+            StreamResult result = new StreamResult(new File("timeSeriesTestData.xml"));
 
             transformer.transform(source, result);
 
@@ -103,7 +103,7 @@ public class TimeSeriesDataGenerator {
         boolean ret = true;
 
         try {
-            CSVWriter writer = new CSVWriter(new FileWriter("/home/kamil/Studia/timeSeriesTestData.csv"));
+            CSVWriter writer = new CSVWriter(new FileWriter("timeSeriesTestData.csv"));
             for(TimeSeriesEntry entry : entriesList) {
                 String[] newEntry = (entry.getDate()+"#"+entry.getAmount()+"#"+entry.getWeek()+"#"+entry.getMonth()).split("#");
                 writer.writeNext(newEntry);

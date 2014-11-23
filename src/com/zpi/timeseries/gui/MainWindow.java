@@ -15,6 +15,12 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
+import java.util.GregorianCalendar;
+
+import com.zpi.timeseries.datautils.TimeSeriesDataGenerator;
+import com.zpi.timeseries.datautils.TimeSeriesDataReader;
+import com.zpi.timeseries.datautils.TimeSeriesEntry;
 
 public class MainWindow implements ActionListener {
 	
@@ -23,8 +29,9 @@ public class MainWindow implements ActionListener {
 	//sciezka do pliku zapisu/odczytu danych
 	TextField filePath;
 	
-	//Czy wyswietlac barchart? jesli nie to XYChart 
-	boolean barChart = true;
+	//Jaki typ wykresu?
+	enum chartTypeValues {BAR, XY, LINE};
+	chartTypeValues chartTypeValue;
 	
 	//Tydzien, miesiac, czy zakres?
 	TimeRangeOption timeRangeOption = TimeRangeOption.Week;
@@ -49,9 +56,10 @@ public class MainWindow implements ActionListener {
 	}
 
 	private void prepareGUI() {
+		
 		mainFrame = new Frame("ZPI TimeSeries");
 		mainFrame.setSize(800, 600);
-		mainFrame.setLayout(new GridLayout(0, 3));
+		mainFrame.setLayout(new GridLayout(8, 0, 0, 0));
 		mainFrame.setBackground(Color.lightGray);
 		mainFrame.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent windowEvent) {
@@ -59,13 +67,14 @@ public class MainWindow implements ActionListener {
 			}
 		});
 		mainFrame.setVisible(true);
-		
 		mainFrame.setMenuBar(new MainMenuBar(this));
 		
-		
 		{
-			Panel panel = new Panel();
 			
+			//Zrodlo danych
+			Panel panel = new Panel();
+			panel.setLayout(new GridLayout(3,0));
+			//Generowanie losowych
 			Button generateRandomButton = new Button(MainMenuCommands.generateTxt);
 			generateRandomButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
@@ -73,15 +82,9 @@ public class MainWindow implements ActionListener {
 				}
 			});
 			panel.add(generateRandomButton);
-			filePath = new TextField("path");
+			filePath = new TextField(System.getProperty("user.dir") + "\\timeSeriesTestData.xml");
 			panel.add(filePath);
-			
-			mainFrame.add(panel);
-		}
-		{
-			Panel panel = new Panel();
-			panel.setLayout(new GridLayout(3,0));
-			
+			//Ladowanie istniejacych
 			Button loadButton = new Button(MainMenuCommands.loadDataTxt);
 			loadButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
@@ -89,93 +92,49 @@ public class MainWindow implements ActionListener {
 				}
 			});
 			panel.add(loadButton);
-			
-			{
-				Panel chartChoicePanel = new Panel();
-				chartChoicePanel.setLayout(new GridLayout(2,0));
-				
-				CheckboxGroup chartChoice = new CheckboxGroup();
-				
-				Checkbox barChartOption = new Checkbox(MainMenuCommands.barChartOptionTxt, chartChoice, true);
-				barChartOption.addItemListener(new ItemListener() {
-					public void itemStateChanged(ItemEvent arg0) {
-						barChart = true;
-						System.out.println("Bar");
-					}
-				});
-				chartChoicePanel.add(barChartOption);
-				
-				Checkbox xyChartOption = new Checkbox(MainMenuCommands.XYChartOptionTxt, chartChoice, false);
-				xyChartOption.addItemListener(new ItemListener() {
-					public void itemStateChanged(ItemEvent arg0) {
-						barChart = false;
-						System.out.println("XY");
-					}
-				});
-				chartChoicePanel.add(xyChartOption);
-				
-				
-				panel.add(chartChoicePanel);
-			}
-			
-			{
-				Panel rangeChoicePanel = new Panel();
-				rangeChoicePanel.setLayout(new GridLayout(3,0));
-				
-				CheckboxGroup chartChoice = new CheckboxGroup();
-				
-				Checkbox weekRangeOption = new Checkbox(MainMenuCommands.weekOptionTxt, chartChoice, true);
-				weekRangeOption.addItemListener(new ItemListener() {
-					public void itemStateChanged(ItemEvent arg0) {
-						timeRangeOption = TimeRangeOption.Week;	
-						dateTo.setEnabled(false);
-						dateToCorrelation.setEnabled(false);
-						System.out.println("Week");
-					}
-				});
-				rangeChoicePanel.add(weekRangeOption);
-				
-				Checkbox monthRangeOption = new Checkbox(MainMenuCommands.monthOptionTxt, chartChoice, false);
-				monthRangeOption.addItemListener(new ItemListener() {
-					public void itemStateChanged(ItemEvent arg0) {
-						timeRangeOption = TimeRangeOption.Month;
-						dateTo.setEnabled(false);
-						dateToCorrelation.setEnabled(false);
-						System.out.println("Month");
-					}
-				});
-				rangeChoicePanel.add(monthRangeOption);
-				
-				Checkbox customRangeOption = new Checkbox(MainMenuCommands.rangeOptionTxt, chartChoice, false);
-				customRangeOption.addItemListener(new ItemListener() {
-					public void itemStateChanged(ItemEvent arg0) {
-						timeRangeOption = TimeRangeOption.Custom;	
-						dateTo.setEnabled(true);
-						dateToCorrelation.setEnabled(true);
-						System.out.println("Custom");
-					}
-				});
-				rangeChoicePanel.add(customRangeOption);
-				
-				panel.add(rangeChoicePanel);
-				
-				
-				Panel dateChoicePanel = new Panel();
-				dateChoicePanel.setLayout(new GridLayout(2,0));
-				
-				dateFrom = new DateTextField();
-				dateTo = new DateTextField();
-				dateChoicePanel.add(dateFrom);
-				dateChoicePanel.add(dateTo);
-				panel.add(dateChoicePanel);
-			}
-			
-			
 			mainFrame.add(panel);
-		}
-		{
-			Panel panel = new Panel();
-			panel.setLayout(new FlowLayout());
+			
+			
+			//Wybor wykresu
+			Panel chartChoicePanel = new Panel();
+			chartChoicePanel.setLayout(new GridLayout(0,3));
+			
+			CheckboxGroup chartChoice = new CheckboxGroup();
+			
+			Checkbox barChartOption = new Checkbox(MainMenuCommands.barChartOptionTxt, chartChoice, true);
+			barChartOption.addItemListener(new ItemListener() {
+				public void itemStateChanged(ItemEvent arg0) {
+					chartTypeValue = chartTypeValues.BAR;
+					System.out.println("Bar");
+				}
+			});
+			chartChoicePanel.add(barChartOption);
+			
+			Checkbox xyChartOption = new Checkbox(MainMenuCommands.XYChartOptionTxt, chartChoice, false);
+			xyChartOption.addItemListener(new ItemListener() {
+				public void itemStateChanged(ItemEvent arg0) {
+					chartTypeValue = chartTypeValues.XY;
+					System.out.println("XY");
+				}
+			});
+			chartChoicePanel.add(xyChartOption);
+			
+			Checkbox lineChartOption = new Checkbox(MainMenuCommands.lineChartOptionTxt, chartChoice, false);
+			lineChartOption.addItemListener(new ItemListener() {
+				public void itemStateChanged(ItemEvent arg0) {
+					chartTypeValue = chartTypeValues.LINE;
+					System.out.println("Line");
+				}
+			});
+			chartChoicePanel.add(lineChartOption);
+			mainFrame.add(chartChoicePanel);
+
+			
+			
+			
+			//Wybor koorelacji
+			Panel coorelationPanel = new Panel();
+			coorelationPanel.setLayout(new FlowLayout());
 			
 			Button corelationRandomButton = new Button(MainMenuCommands.corelationTxt);
 			corelationRandomButton.addActionListener(new ActionListener() {
@@ -184,36 +143,104 @@ public class MainWindow implements ActionListener {
 				}
 			});
 			
-			panel.add(corelationRandomButton);
+			coorelationPanel.add(corelationRandomButton);
 			
 			Panel dateChoicePanel = new Panel();
 			dateChoicePanel.setLayout(new GridLayout(2,0));
-			
 			dateFromCorrelation = new DateTextField();
 			dateToCorrelation = new DateTextField();
 			dateChoicePanel.add(dateFromCorrelation);
 			dateChoicePanel.add(dateToCorrelation);
-			panel.add(dateChoicePanel);
 			
-			mainFrame.add(panel);
+			coorelationPanel.add(dateChoicePanel);
+
+			mainFrame.add(coorelationPanel);
+			
+			//Wybor zakresu
+			Panel rangeChoicePanel = new Panel();
+			rangeChoicePanel.setLayout(new GridLayout(0,3));
+			
+			CheckboxGroup chartRangeChoice = new CheckboxGroup();
+			
+			Checkbox weekRangeOption = new Checkbox(MainMenuCommands.weekOptionTxt, chartRangeChoice, true);
+			weekRangeOption.addItemListener(new ItemListener() {
+				public void itemStateChanged(ItemEvent arg0) {
+					timeRangeOption = TimeRangeOption.Week;	
+					dateTo.setEnabled(false);
+					dateToCorrelation.setEnabled(false);
+					System.out.println("Week");
+				}
+			});
+			rangeChoicePanel.add(weekRangeOption);
+			
+			Checkbox monthRangeOption = new Checkbox(MainMenuCommands.monthOptionTxt, chartRangeChoice, false);
+			monthRangeOption.addItemListener(new ItemListener() {
+				public void itemStateChanged(ItemEvent arg0) {
+					timeRangeOption = TimeRangeOption.Month;
+					dateTo.setEnabled(false);
+					dateToCorrelation.setEnabled(false);
+					System.out.println("Month");
+				}
+			});
+			rangeChoicePanel.add(monthRangeOption);
+			
+			Checkbox customRangeOption = new Checkbox(MainMenuCommands.rangeOptionTxt, chartRangeChoice, false);
+			customRangeOption.addItemListener(new ItemListener() {
+				public void itemStateChanged(ItemEvent arg0) {
+					timeRangeOption = TimeRangeOption.Custom;	
+					dateTo.setEnabled(true);
+					dateToCorrelation.setEnabled(true);
+					System.out.println("Custom");
+				}
+			});
+			rangeChoicePanel.add(customRangeOption);
+			mainFrame.add(rangeChoicePanel);
+			
+			mainFrame.revalidate();
+			mainFrame.repaint();
+			
 		}
 	
 	}
 	
+	/**
+	 * Generuje losowe dane i zapisuje je do pliku którego adres jest wpisany w polu
+	 */
 	public void GenerateRandom()
 	{
-		//TODO: Generate random
-		
+        TimeSeriesDataGenerator generator = new TimeSeriesDataGenerator();
+        generator.generateNewEntries(new GregorianCalendar(2013, 0, 1), new GregorianCalendar(2013, 11, 31));
+        generator.generateCSVData();
+        generator.generateXMLData();
 	}
 	
+	/**
+	 * Laduje dane z pliku CSV lub xml
+	 */
 	public void LoadData()
 	{
-		//TODO: LoadData
+
+		String filepath = this.filePath.getText();
+		String ext = filepath.substring(filepath.lastIndexOf(".")+1);
+				
+		TimeSeriesDataReader reader = new TimeSeriesDataReader();
+		if(ext == "csv") {
+	        for(TimeSeriesEntry entry : reader.readXMLData(filepath)) {
+	            System.out.println(entry.getDoubleBinaryAmount().toString());
+	        }
+		} else if(ext == "xml") {
+	        for(TimeSeriesEntry entry : reader.readXMLData(filepath)) {
+	            System.out.println(entry.getDoubleBinaryAmount().toString());
+	        }
+		} else {
+			new Exception("Unsupportable file extension. Try with csv or xml file.");
+		}
 		
 	}
 	
 	public void Corelation()
 	{
+		
 		//TODO: Corelation
 	}
 
