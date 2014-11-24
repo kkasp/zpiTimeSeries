@@ -1,7 +1,12 @@
 package com.zpi.timeseries.datautils;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 
 /**
  * Created by kamil on 16.11.14.
@@ -29,6 +34,25 @@ public class TimeSeriesEntry {
     public String getDate() {
         return this.date;
     }
+    
+    public Date getDateObject() throws ParseException {
+    	DateFormat _formatter = new SimpleDateFormat("dd-MM-yy");
+    	Date _date = _formatter.parse(this.date);
+		return _date;
+    }
+    
+    public int getDay(int mode) throws ParseException {
+        
+    	Calendar c = Calendar.getInstance(); 
+  
+    	DateFormat formatter = new SimpleDateFormat("dd-MM-yy");
+    	Date d = formatter.parse(this.date);
+    
+    	c.setTime(d);
+		return c.get(mode);
+		
+    }
+
 
     public void setAmount(String amount) {
         this.amount = amount;
@@ -55,6 +79,18 @@ public class TimeSeriesEntry {
         this.month = month;
     }
 
+    public int getYear() throws ParseException {
+        
+    	Calendar c = Calendar.getInstance(); 
+   
+    	DateFormat formatter = new SimpleDateFormat("dd-mm-yy");
+    	Date d = formatter.parse(this.date);
+    	
+    	c.setTime(d);
+		return c.get(Calendar.YEAR);
+		
+    }
+    
     public int getAmountInt() {
         return amountInt;
     }
