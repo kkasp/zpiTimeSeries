@@ -94,6 +94,10 @@ public class TimeSeriesEntry {
     public int getAmountInt() {
         return amountInt;
     }
+    
+    public double getAmountDouble() {
+        return Double.parseDouble(amount);
+    }
 
     public void setAmountInt(int amountDouble) {
         this.amountInt = amountDouble;

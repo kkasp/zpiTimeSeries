@@ -19,8 +19,10 @@ import java.awt.event.WindowEvent;
 import java.awt.geom.Point2D;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.List;
 
 import javax.swing.JComponent;
 
@@ -32,12 +34,15 @@ import com.zpi.timeseries.charts.TimeSeriesChart;
 import com.zpi.timeseries.charts.TimeseriesTimeValues;
 import com.zpi.timeseries.charts.XYChart;
 import com.zpi.timeseries.charts.XYChartValues;
+import com.zpi.timeseries.corellation.Correlation;
 import com.zpi.timeseries.datautils.TimeSeriesDataGenerator;
 import com.zpi.timeseries.datautils.TimeSeriesDataReader;
 import com.zpi.timeseries.datautils.TimeSeriesEntry;
 import com.zpi.timeseries.neuralnetwork.NeuralNetwork;
 import com.zpi.timeseries.neuralnetwork.learning.HebbLearner;
+import com.zpi.timeseries.neuralnetwork.transferprocessors.LinearTransferProcessor;
 import com.zpi.timeseries.neuralnetwork.transferprocessors.SigmoidTransferProcessor;
+import com.zpi.timeseries.neuralnetwork.transferprocessors.SignumTransferProcessor;
 
 public class MainWindow implements ActionListener {
 	
@@ -70,6 +75,9 @@ public class MainWindow implements ActionListener {
 	//
 	TimeSeriesDataReader reader = new TimeSeriesDataReader();
 	
+	boolean panelsLoaded = false;
+	
+	
 	public static void main(String[] args) {
 		MainWindow window = new MainWindow();
 		window.prepareGUI();
@@ -99,15 +107,20 @@ public class MainWindow implements ActionListener {
 				GenerateRandom();
 			}
 		});
+		
 		panel.add(generateRandomButton);
 		filePath = new TextField(System.getProperty("user.dir") + "\\timeSeriesTestData.xml");
+		
 		panel.add(filePath);
 		//Ladowanie istniejacych
 		Button loadButton = new Button(MainMenuCommands.loadDataTxt);
 		loadButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				LoadData();
-				LoadPanels(mainFrame);
+				if(panelsLoaded == false) {
+					panelsLoaded = true;
+					LoadPanels(mainFrame);
+				}
 			}
 		});
 		panel.add(loadButton);
@@ -120,6 +133,7 @@ public class MainWindow implements ActionListener {
 	
 	private void LoadPanels(Frame mainFrame) {
 		
+
 		//Wybor wykresu
 		Panel chartChoicePanel = new Panel();
 		chartChoicePanel.setLayout(new GridLayout(0,3));
@@ -143,6 +157,7 @@ public class MainWindow implements ActionListener {
 			}
 		});
 		chartChoicePanel.add(xyChartOption);
+		
 		
 		Checkbox lineChartOption = new Checkbox(MainMenuCommands.lineChartOptionTxt, chartChoice, false);
 		lineChartOption.addItemListener(new ItemListener() {
@@ -210,10 +225,11 @@ public class MainWindow implements ActionListener {
 		
 		
 		//Start i koorelacja
+		
 		Button corelationRandomButton = new Button(MainMenuCommands.corelationTxt);
 		corelationRandomButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				Corelation();
+			public void actionPerformed(ActionEvent e) {
+				Corelation(e);
 			}
 		});
 		
@@ -223,9 +239,9 @@ public class MainWindow implements ActionListener {
 				startNeuron();
 			}
 		});
-		
-		mainFrame.add(corelationRandomButton);
 		mainFrame.add(startNeuronButton);
+		mainFrame.add(corelationRandomButton);
+
 		
 		mainFrame.revalidate();
 		mainFrame.repaint();
@@ -269,27 +285,62 @@ public class MainWindow implements ActionListener {
 
 	}
 	
-	public void Corelation()
+	public void Corelation(ActionEvent e)
 	{
+		
+		Button sourceButton = (Button) e.getSource();
 		
 		//Dane do korelacji na podstawie wybranych dat i wczytanego pliku
 		ArrayList<TimeSeriesEntry> dataArray = reader.getFilteredDataArray(dateFromCorrelation.getDate(), dateToCorrelation.getDate(), timeRangeOption);
 		
-		//Wybierz zakres na podstawie wybranych dat
+		//@todo
+
+		//Policz korelacje
+		double[] sourceChunk = TimeSeriesDataReader.toDouble(dataArray);
+		double[] y = {0.3,1.0,1.1,1.3,6.3,1.0,2.0};
+		double pearsonCorrelation = Correlation.pearson(sourceChunk,y);
+		double spearmanCorrelation = Correlation.spearman(sourceChunk,y);
 		
-		//Oblicza korelacje w podanym zakresie danych i ja pokazuje
+		sourceButton.setLabel(
+				"Korelacja PEARSONA: " + String.valueOf(pearsonCorrelation) +
+				"           " + 
+				"Korelacja SPEARMANA:" + String.valueOf(spearmanCorrelation)
+				);
 		
 	}
 
 	public void startNeuron() {
 
-		//Wybierz zakres na podstawie wybranych dat
-		ArrayList<TimeSeriesEntry> dataArray = reader.getFilteredDataArray(dateFromCorrelation.getDate(), dateToCorrelation.getDate(), timeRangeOption);
+		//Naucz siec caloscia danych
+		List<TimeSeriesEntry> inputChunk;
+		double[] resultChunk;
+		ArrayList<TimeSeriesEntry> dataArray = reader.getDataArray();
+		ArrayList<TimeSeriesEntry> resultDataArray;
+		int size = 15; //jaki size?
+		int i = 0;
 		
-		//Wrzuc w siec neuronowa naucz ja cos i zwroc?
-//		NeuralNetwork network = new NeuralNetwork(new int[] {2, 3, 2}, new SigmoidTransferProcessor(), new HebbLearner(.2));
-//		dataArray = network.processInput(new double[] {1, 0});
+		NeuralNetwork network = new NeuralNetwork(new int[] {size, size*size, size}, new SigmoidTransferProcessor(), new HebbLearner(.2));
+		for(TimeSeriesEntry entry : dataArray)  {
+			
+			//Chunk
+			inputChunk = new ArrayList<TimeSeriesEntry>(dataArray.subList(i, i+size));
+			double[] inputTable = TimeSeriesDataReader.toDouble(inputChunk);
+			
+			//Ostatni chunk to rozmiar danych
+			resultChunk = network.processInput(inputTable);
+			System.out.println(Arrays.toString(resultChunk));
+			
+			i++;
+			if(i > dataArray.size() - size) {
+				break;
+			}
+			
+    	}
+		network.setAutonomicLearner(null);
 
+		//Wybierz zakres na podstawie wybranych dat
+		dataArray = reader.getFilteredDataArray(dateFromCorrelation.getDate(), dateToCorrelation.getDate(), timeRangeOption);
+		
 		//Pokaz wykresy, parami data (x) i wartosc (y)
 		ArrayList<String> labels = new ArrayList<String>();
 		ArrayList<Double> values = new ArrayList<Double>();
@@ -322,6 +373,10 @@ public class MainWindow implements ActionListener {
         }	
         
 	}
+	
+	
+	
+	
 	
 	@Override
 	public void actionPerformed(ActionEvent event) {

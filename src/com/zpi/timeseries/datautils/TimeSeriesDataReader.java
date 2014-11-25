@@ -25,7 +25,7 @@ import java.util.List;
  */
 public class TimeSeriesDataReader {
 
-    private ArrayList<TimeSeriesEntry> dataArray = new ArrayList<TimeSeriesEntry>();
+	private ArrayList<TimeSeriesEntry> dataArray = new ArrayList<TimeSeriesEntry>();
     
     public ArrayList<TimeSeriesEntry> readXMLData(String file) {
         dataArray.clear();
@@ -129,6 +129,17 @@ public class TimeSeriesDataReader {
 
     public ArrayList<TimeSeriesEntry> getDataArray() {
     	return dataArray;
+    }
+    
+    public static double[] toDouble(List<TimeSeriesEntry> inputChunk) {
+    	
+		double[] inputTable = new double[inputChunk.size()];
+		for (int j = 0; j < inputChunk.size(); j++) {
+			inputTable[j] = inputChunk.get(j).getAmountDouble();
+		}
+    	
+		return inputTable;
+    	
     }
     
 }
