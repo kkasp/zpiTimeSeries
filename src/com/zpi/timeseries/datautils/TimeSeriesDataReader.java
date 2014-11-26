@@ -26,6 +26,7 @@ import java.util.List;
 public class TimeSeriesDataReader {
 
 	private ArrayList<TimeSeriesEntry> dataArray = new ArrayList<TimeSeriesEntry>();
+	private double[] dataResultArray = null;
     
     public ArrayList<TimeSeriesEntry> readXMLData(String file) {
         dataArray.clear();
@@ -96,21 +97,21 @@ public class TimeSeriesDataReader {
 	            for(TimeSeriesEntry entry : dataArray)  {
 	            	if(Integer.parseInt(entry.getWeek()) == fromSettedWeek && entry.getYear() == fromSettedYear) {
 	            		dataFilteredArray.add(entry);	
-	            		System.out.println(entry.toString());
+	            		//System.out.println(entry.toString());
 	            	}
 	            }
 	    	} else if(timeRangeOption == TimeRangeOption.Month) {
 	            for(TimeSeriesEntry entry : dataArray)  {
 	            	if(Integer.parseInt(entry.getMonth()) == fromSettedMonth && entry.getYear() == fromSettedYear) {
 	            		dataFilteredArray.add(entry);	
-	            		System.out.println(entry.toString());
+	            		//System.out.println(entry.toString());
 	            	}
 	            }
 	    	} else { //Custom
 	            for(TimeSeriesEntry entry : dataArray)  {
 	            	if(entry.getDateObject().after(dateFrom) && entry.getDateObject().before(dateTo)) {
 	            		dataFilteredArray.add(entry);	
-	            		System.out.println(entry.toString());
+	            		//System.out.println(entry.toString());
 	            	}
 //                	System.out.println(entry.getDay(Calendar.DAY_OF_YEAR) + "/" + entry.getYear());
 //                	System.out.println(fromSettedDay + "/" + fromSettedYear);
@@ -129,6 +130,14 @@ public class TimeSeriesDataReader {
 
     public ArrayList<TimeSeriesEntry> getDataArray() {
     	return dataArray;
+    }
+    
+    public void setDataResultArray(double[] source) {
+    	dataResultArray = source;
+    }
+    
+    public double[] getDataResultArray() {
+    	return dataResultArray;
     }
     
     public static double[] toDouble(List<TimeSeriesEntry> inputChunk) {

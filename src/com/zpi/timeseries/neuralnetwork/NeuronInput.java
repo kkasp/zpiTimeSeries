@@ -11,7 +11,7 @@ public class NeuronInput
 	public NeuronInput()
 	{
 		inputValue = 0.0;
-		weight = new Random().nextDouble() * .2;  // W ten sposób mamy liczbę z zakresu 0-0.2
+		weight = new Random().nextDouble()*0.000001; // W ten sposób mamy liczbę z zakresu 0-0.2
 		source = null;
 	}
 	

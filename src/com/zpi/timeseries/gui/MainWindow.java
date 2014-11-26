@@ -21,6 +21,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 
@@ -76,7 +77,7 @@ public class MainWindow implements ActionListener {
 	TimeSeriesDataReader reader = new TimeSeriesDataReader();
 	
 	boolean panelsLoaded = false;
-	
+	boolean corelationButtonAdded = false;
 	
 	public static void main(String[] args) {
 		MainWindow window = new MainWindow();
@@ -144,7 +145,7 @@ public class MainWindow implements ActionListener {
 		barChartOption.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent arg0) {
 				chartTypeValue = chartTypeValues.BAR;
-				System.out.println("Bar");
+				//System.out.println("Bar");
 			}
 		});
 		chartChoicePanel.add(barChartOption);
@@ -153,7 +154,7 @@ public class MainWindow implements ActionListener {
 		xyChartOption.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent arg0) {
 				chartTypeValue = chartTypeValues.XY;
-				System.out.println("XY");
+				//System.out.println("XY");
 			}
 		});
 		chartChoicePanel.add(xyChartOption);
@@ -163,7 +164,7 @@ public class MainWindow implements ActionListener {
 		lineChartOption.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent arg0) {
 				chartTypeValue = chartTypeValues.LINE;
-				System.out.println("Line");
+				//System.out.println("Line");
 			}
 		});
 		chartChoicePanel.add(lineChartOption);
@@ -172,7 +173,9 @@ public class MainWindow implements ActionListener {
 		
 		//Imnicjalizacja
 		dateFromCorrelation = new DateTextField();
+		dateFromCorrelation.setText("01/09/2013");
 		dateToCorrelation = new DateTextField();
+		dateToCorrelation.setText("30/09/2013");
 		dateToCorrelation.setEnabled(false);
 		//Wybor zakresu
 		Panel rangeChoicePanel = new Panel();
@@ -185,7 +188,7 @@ public class MainWindow implements ActionListener {
 			public void itemStateChanged(ItemEvent arg0) {
 				timeRangeOption = TimeRangeOption.Week;	
 				dateToCorrelation.setEnabled(false);
-				System.out.println("Week");
+				//System.out.println("Week");
 			}
 		});
 		rangeChoicePanel.add(weekRangeOption);
@@ -195,7 +198,7 @@ public class MainWindow implements ActionListener {
 			public void itemStateChanged(ItemEvent arg0) {
 				timeRangeOption = TimeRangeOption.Month;
 				dateToCorrelation.setEnabled(false);
-				System.out.println("Month");
+				//System.out.println("Month");
 			}
 		});
 		rangeChoicePanel.add(monthRangeOption);
@@ -205,7 +208,7 @@ public class MainWindow implements ActionListener {
 			public void itemStateChanged(ItemEvent arg0) {
 				timeRangeOption = TimeRangeOption.Custom;	
 				dateToCorrelation.setEnabled(true);
-				System.out.println("Custom");
+				//System.out.println("Custom");
 			}
 		});
 		rangeChoicePanel.add(customRangeOption);
@@ -224,15 +227,7 @@ public class MainWindow implements ActionListener {
 		mainFrame.add(coorelationPanel);
 		
 		
-		//Start i koorelacja
-		
-		Button corelationRandomButton = new Button(MainMenuCommands.corelationTxt);
-		corelationRandomButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				Corelation(e);
-			}
-		});
-		
+		//Start
 		Button startNeuronButton = new Button(MainMenuCommands.neuronStartTxt);
 		startNeuronButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
@@ -240,7 +235,7 @@ public class MainWindow implements ActionListener {
 			}
 		});
 		mainFrame.add(startNeuronButton);
-		mainFrame.add(corelationRandomButton);
+		
 
 		
 		mainFrame.revalidate();
@@ -275,14 +270,14 @@ public class MainWindow implements ActionListener {
 			reader.readXMLData(filepath);
 		} else {
 			new Exception("Unsupportable file extension. Try with csv or xml file.");
-			System.out.println("Error");
+			//System.out.println("Error");
 		}
 		
 		//Pokaz
         for(TimeSeriesEntry entry : reader.getDataArray())  {
             //System.out.println(entry.toString());
         }
-
+        
 	}
 	
 	public void Corelation(ActionEvent e)
@@ -292,14 +287,12 @@ public class MainWindow implements ActionListener {
 		
 		//Dane do korelacji na podstawie wybranych dat i wczytanego pliku
 		ArrayList<TimeSeriesEntry> dataArray = reader.getFilteredDataArray(dateFromCorrelation.getDate(), dateToCorrelation.getDate(), timeRangeOption);
-		
-		//@todo
 
 		//Policz korelacje
 		double[] sourceChunk = TimeSeriesDataReader.toDouble(dataArray);
-		double[] y = {0.3,1.0,1.1,1.3,6.3,1.0,2.0};
-		double pearsonCorrelation = Correlation.pearson(sourceChunk,y);
-		double spearmanCorrelation = Correlation.spearman(sourceChunk,y);
+		double[] resultChunk = reader.getDataResultArray();
+		double pearsonCorrelation = Correlation.pearson(sourceChunk, resultChunk);
+		double spearmanCorrelation = Correlation.spearman(sourceChunk,resultChunk);
 		
 		sourceButton.setLabel(
 				"Korelacja PEARSONA: " + String.valueOf(pearsonCorrelation) +
@@ -313,23 +306,46 @@ public class MainWindow implements ActionListener {
 
 		//Naucz siec caloscia danych
 		List<TimeSeriesEntry> inputChunk;
-		double[] resultChunk;
+		double[] resultChunkTemp = null;
+		double[] resultChunk = null;
 		ArrayList<TimeSeriesEntry> dataArray = reader.getDataArray();
 		ArrayList<TimeSeriesEntry> resultDataArray;
-		int size = 15; //jaki size?
+		int size = 0;
+		if(timeRangeOption == TimeRangeOption.Week) {
+			size = 7;
+		} else if(timeRangeOption == TimeRangeOption.Month) {
+			size = 30;
+		} else { //Zakres
+			//Policz ilosc dni
+			Calendar startCal=new GregorianCalendar();
+			Calendar endCal=new GregorianCalendar();
+
+			startCal.setTime(dateFromCorrelation.getDate());
+			endCal.setTime(dateToCorrelation.getDate());
+
+			endCal.add(Calendar.YEAR,-startCal.get(Calendar.YEAR));
+			endCal.add(Calendar.MONTH,-startCal.get(Calendar.MONTH));
+			endCal.add(Calendar.DATE,-startCal.get(Calendar.DATE));
+
+			size = endCal.get(Calendar.DAY_OF_YEAR);
+
+		}
+		
 		int i = 0;
 		
-		NeuralNetwork network = new NeuralNetwork(new int[] {size, size*size, size}, new SigmoidTransferProcessor(), new HebbLearner(.2));
+		NeuralNetwork network = new NeuralNetwork(new int[] {size, size*size, size}, new SigmoidTransferProcessor(), new HebbLearner(.02));
 		for(TimeSeriesEntry entry : dataArray)  {
 			
 			//Chunk
-			inputChunk = new ArrayList<TimeSeriesEntry>(dataArray.subList(i, i+size));
+			inputChunk = new ArrayList<TimeSeriesEntry>(dataArray.subList(0, 0+size));
 			double[] inputTable = TimeSeriesDataReader.toDouble(inputChunk);
 			
 			//Ostatni chunk to rozmiar danych
-			resultChunk = network.processInput(inputTable);
-			System.out.println(Arrays.toString(resultChunk));
-			
+			resultChunkTemp = network.processInput(inputTable);
+			if(resultChunkTemp[0] != 1.0) {
+				resultChunk = resultChunkTemp;
+			}
+
 			i++;
 			if(i > dataArray.size() - size) {
 				break;
@@ -337,14 +353,18 @@ public class MainWindow implements ActionListener {
 			
     	}
 		network.setAutonomicLearner(null);
+		reader.setDataResultArray(resultChunk);
 
 		//Wybierz zakres na podstawie wybranych dat
 		dataArray = reader.getFilteredDataArray(dateFromCorrelation.getDate(), dateToCorrelation.getDate(), timeRangeOption);
 		
 		//Pokaz wykresy, parami data (x) i wartosc (y)
 		ArrayList<String> labels = new ArrayList<String>();
+		ArrayList<String> labelsResult = new ArrayList<String>();
 		ArrayList<Double> values = new ArrayList<Double>();
 		ArrayList<Point2D> valuesPoint2D = new ArrayList<Point2D>();
+		ArrayList<Double> valuesResult = new ArrayList<Double>();
+		ArrayList<Point2D> valuesResultPoint2D = new ArrayList<Point2D>();
 		ArrayList<Day> labelsDays = new ArrayList<Day>();
 		try {
 			for(TimeSeriesEntry entry : dataArray)  {
@@ -352,7 +372,14 @@ public class MainWindow implements ActionListener {
 				labelsDays.add(new Day(entry.getDay(Calendar.DAY_OF_MONTH) , 1+Integer.parseInt(entry.getMonth()), entry.getYear()));
 				values.add(entry.getDoubleAmount());
 				valuesPoint2D.add(new Point2D.Double(entry.getDay(Calendar.DAY_OF_YEAR), entry.getDoubleAmount()));
+				//
+
         	}
+			for (int j = 0; j < resultChunk.length; j++) {
+				labelsResult.add(Integer.toString(j));
+				valuesResult.add(resultChunk[j]);
+				valuesResultPoint2D.add(new Point2D.Double(j, resultChunk[j]));
+			}
 		} catch (ParseException e) {
 			e.printStackTrace();
 		}
@@ -360,28 +387,52 @@ public class MainWindow implements ActionListener {
         //£adowanie wykresu
         if(chartTypeValue == chartTypeValues.XY) {
         	XYChart chart = new XYChart(new XYChartValues("Wartoœæ w dziedzinie czasu", valuesPoint2D));
-    		chart.createXYChart();
+        	XYChart chartResult = new XYChart(new XYChartValues("Wartoœæ w dziedzinie czasu - neurony", valuesResultPoint2D));
+        	chart.createXYChart();
+        	chartResult.createXYChart();
         } else if(chartTypeValue == chartTypeValues.LINE) {
         	TimeSeriesChart chart = new TimeSeriesChart(new TimeseriesTimeValues("Wartoœæ w dziedzinie czasu", labelsDays, values));
-    		chart.setChartTitle("Wykres dla szeregu czasowego");
+        	TimeSeriesChart chartResult = new TimeSeriesChart(new TimeseriesTimeValues("Wartoœæ w dziedzinie czasu - neurony", labelsDays, valuesResult));
+        	chart.setChartTitle("Wykres dla szeregu czasowego");
     		chart.setXLabel("Dni");
     		chart.setYLabel("Wartoœæ wskaŸnika");
     		chart.createTimeSeriesTimeChart();
+    		chartResult.setChartTitle("Wykres dla szeregu czasowego");
+    		chartResult.setXLabel("Dni");
+    		chartResult.setYLabel("Wartoœæ wskaŸnika");
+    		chartResult.createTimeSeriesTimeChart();
         } else { //BAR
         	BarChart chart = new BarChart("Wyniki", new BarChartValues("Wartoœæ w dziedzinie czasu", labels, values));
-			chart.create3DBarChart();
+        	BarChart chartResult = new BarChart("Wyniki", new BarChartValues("Wartoœæ w dziedzinie czasu - neurony", labelsResult, valuesResult));
+        	chart.create3DBarChart();
+        	chartResult.create3DBarChart();
         }	
+        
+        if(corelationButtonAdded == false) {
+        	
+			Button corelationRandomButton = new Button(MainMenuCommands.corelationTxt);
+			corelationRandomButton.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					Corelation(e);
+				}
+			});
+			mainFrame.add(corelationRandomButton);
+			mainFrame.revalidate();
+			mainFrame.repaint();
+			
+			corelationButtonAdded = true;
+        
+        }
         
 	}
 	
-	
-	
+
 	
 	
 	@Override
 	public void actionPerformed(ActionEvent event) {
 		String command = event.getActionCommand();
-		System.out.println("Command: " + command);
+		//System.out.println("Command: " + command);
 		switch(command)
 		{
 		case MainMenuCommands.closeTxt:

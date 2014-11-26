@@ -21,7 +21,7 @@ public class TimeSeriesEntryGenerator {
         int amountEntry;
 
         while(dateEntry.before(end)) {
-            amountEntry = (random.nextInt(Integer.MAX_VALUE) % 10) * 4;
+            amountEntry = ( (random.nextInt(Integer.MAX_VALUE) % 10) * 4 ) + 1;
             amountEntry = amountEntry * (dateEntry.get(Calendar.DAY_OF_WEEK)  == Calendar.SATURDAY || dateEntry.get(Calendar.DAY_OF_WEEK)  == Calendar.FRIDAY  ? 4 : 1);
 
             sdf.setCalendar(dateEntry);
